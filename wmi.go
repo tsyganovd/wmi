@@ -369,7 +369,27 @@ func (c *Client) loadEntity(dst interface{}, src *ole.IDispatch) (errFieldMismat
 					Reason:     "not a Float32",
 				}
 			}
-		default:
+		case nil:
+			switch f.Kind() {
+			case reflect.String:
+				f.SetString("<empty>")
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				f.SetInt(0)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				f.SetUint(0)
+			case reflect.Float32, reflect.Float64:
+				f.SetFloat(0)
+			case reflect.Bool:
+				f.SetBool(false)
+			default:
+				return &ErrFieldMismatch{
+					StructType: of.Type(),
+					FieldName:  n,
+					Reason:     "type <nil> is returned",
+				}
+			}
+		
+			default:
 			// Only support []string slices for now
 			if f.Kind() == reflect.Slice && f.Type().Elem().Kind() == reflect.String {
 				safeArray := prop.ToArray()
